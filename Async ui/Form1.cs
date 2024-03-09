@@ -14,6 +14,7 @@ namespace Async_ui
     public partial class Form1 : Form
     {
         private CancellationTokenSource _cancellationTokenSource;
+        private bool _isRunning;
         public Form1()
         {
             InitializeComponent();
@@ -21,9 +22,16 @@ namespace Async_ui
 
         private async void button1_Click(object sender, EventArgs e)
         {
-            _cancellationTokenSource = new CancellationTokenSource();
+            if (_isRunning)
+            {
+                MessageBox.Show("Another operation is already in progress.");
+                return;
+            }
 
-            button1.Enabled = false;
+            _cancellationTokenSource = new CancellationTokenSource();
+            _isRunning = true;
+
+            //button1.Enabled = false;
             progressBar1.Style = ProgressBarStyle.Marquee;
             progressBar1.MarqueeAnimationSpeed = 30;
 
@@ -31,16 +39,21 @@ namespace Async_ui
             {
                 await GetDataAsync(_cancellationTokenSource.Token);
             }
+            catch (OperationCanceledException)
+            {
+                MessageBox.Show("Operation was canceled.");
+            }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
             }
             finally
             {
-                button1.Enabled = true;
+                //button1.Enabled = true;
                 progressBar1.Style = ProgressBarStyle.Blocks;
                 progressBar1.MarqueeAnimationSpeed = 0;
-            }    
+                _isRunning = false;
+            }
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -61,6 +74,6 @@ namespace Async_ui
             }
         }
 
-        
+
     }
 }
